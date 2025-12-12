@@ -14,6 +14,7 @@ import QuestionDetails from "@/pages/questions/[id]/index";
 import LoginHistory from "@/pages/LoginHistory/LoginHistory";
 import Users from "@/pages/users/index";
 import Questions from "@/pages/index"; // Home page shows questions
+import Tags from "@/pages/tags/index";
 
 function App() {
     return (
@@ -30,6 +31,7 @@ function App() {
                     <Route path="/users/:id" element={<UserProfile />} />
                     <Route path="/questions" element={<Questions />} />
                     <Route path="/questions/:id" element={<QuestionDetails />} />
+                    <Route path="/tags" element={<Tags />} />
                     <Route path="/login-history" element={<LoginHistory />} />
                 </Routes>
             </AuthProvider>

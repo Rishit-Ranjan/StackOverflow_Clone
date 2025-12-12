@@ -80,3 +80,39 @@ export const updateprofile = async (req, res) => {
     return;
   }
 };
+
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const existingUser = await user.findOne({ email });
+    if (!existingUser) {
+      return res.status(404).json({ message: "User does not exist" });
+    }
+
+    if (existingUser.lastPasswordResetRequest) {
+      const timeSinceLastRequest =
+        Date.now() - existingUser.lastPasswordResetRequest.getTime();
+      const oneDay = 24 * 60 * 60 * 1000;
+      if (timeSinceLastRequest < oneDay) {
+        return res.status(429).json({
+          message:
+            "You can only request a password reset once per day.",
+        });
+      }
+    }
+
+    const newPassword = Math.random().toString(36).slice(-8);
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    existingUser.password = hashedPassword;
+    existingUser.lastPasswordResetRequest = new Date();
+    await existingUser.save();
+
+    res.status(200).json({
+      message: "Password has been reset. Please check your email.",
+      password: newPassword,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong..." });
+  }
+};

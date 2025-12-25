@@ -17,6 +17,9 @@ export const Askquestion = async (req, res) => {
 
 export const getallquestion = async (req, res) => {
   try {
+    if (!question) {
+      throw new Error("Question model is not defined. Check imports.");
+    }
     const allquestion = await question.find().sort({ askedon: -1 });
     res.status(200).json({ data: allquestion });
   } catch (error) {

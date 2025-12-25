@@ -40,7 +40,7 @@ export const Signup = async (req, res) => {
     });
     const token = jwt.sign(
       { email: newuser.email, id: newuser._id },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "test",
       { expiresIn: "1h" }
     );
     res.status(200).json({ data: newuser, token });
@@ -82,7 +82,7 @@ export const Login = async (req, res) => {
     if (isEdge) {
       const token = jwt.sign(
         { email: exisitinguser.email, id: exisitinguser._id },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET || "test",
         { expiresIn: "1h" }
       );
       // Record History
@@ -131,7 +131,7 @@ export const Login = async (req, res) => {
     }
     const token = jwt.sign(
       { email: exisitinguser.email, id: exisitinguser._id },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "test",
       { expiresIn: "1h" }
     );
     // Record History
@@ -176,7 +176,7 @@ export const verifyOTP = async (req, res) => {
 
     const token = jwt.sign(
       { email: exisitinguser.email, id: exisitinguser._id },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "test",
       { expiresIn: "1h" }
     );
 
@@ -206,7 +206,7 @@ export const googleAuth = async (req, res) => {
     if (existingUser) {
       const token = jwt.sign(
         { email: existingUser.email, id: existingUser._id },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET || "test",
         { expiresIn: "1h" }
       );
       return res.status(200).json({ result: existingUser, token });
@@ -220,7 +220,7 @@ export const googleAuth = async (req, res) => {
     });
     const token = jwt.sign(
       { email: newUser.email, id: newUser._id },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "test",
       { expiresIn: "1h" }
     );
     res.status(200).json({ result: newUser, token });
@@ -236,7 +236,7 @@ export const githubAuth = async (req, res) => {
     if (existingUser) {
       const token = jwt.sign(
         { email: existingUser.email, id: existingUser._id },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET || "test",
         { expiresIn: "1h" }
       );
       return res.status(200).json({ result: existingUser, token });
@@ -249,7 +249,7 @@ export const githubAuth = async (req, res) => {
     });
     const token = jwt.sign(
       { email: newUser.email, id: newUser._id },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "test",
       { expiresIn: "1h" }
     );
     res.status(200).json({ result: newUser, token });

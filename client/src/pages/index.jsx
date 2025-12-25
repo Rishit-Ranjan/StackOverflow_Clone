@@ -68,13 +68,19 @@ const questions = [
 ];
 export default function Home() {
   const [question, setquestion] = useState(null);
+  const [filteredQuestion, setfilteredQuestion] = useState(null);
   const [loading, setloading] = useState(true);
+  const [sortBy, setSortBy] = useState("newest");
+  const [filterBy, setFilterBy] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+
   useEffect(() => {
     const fetchquestion = async () => {
       try {
         const res = await axiosInstance.get("/question/getallquestion");
         setquestion(res.data.data);
+        setfilteredQuestion(res.data.data);
       } catch (error) {
         console.log(error);
       } finally {
@@ -83,6 +89,42 @@ export default function Home() {
     };
     fetchquestion();
   }, []);
+
+  // Apply filtering and sorting
+  useEffect(() => {
+    if (!question) return;
+    let result = [...question];
+
+    // Search filter
+    if (searchQuery.trim()) {
+      result = result.filter((q) =>
+        q.questiontitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        q.questionbody.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter by status
+    if (filterBy === "unanswered") {
+      result = result.filter((q) => q.noofanswer === 0);
+    } else if (filterBy === "bountied") {
+      result = result.filter((q) => q.upvote && q.upvote.length > 0);
+    }
+
+    // Sort
+    if (sortBy === "newest") {
+      result.sort((a, b) => new Date(b.askedon) - new Date(a.askedon));
+    } else if (sortBy === "active") {
+      result.sort((a, b) => {
+        const aDate = a.answer && a.answer.length > 0 ? new Date(a.answer[a.answer.length - 1].answeredon) : new Date(a.askedon);
+        const bDate = b.answer && b.answer.length > 0 ? new Date(b.answer[b.answer.length - 1].answeredon) : new Date(b.askedon);
+        return bDate - aDate;
+      });
+    } else if (sortBy === "mostvoted") {
+      result.sort((a, b) => (b.upvote?.length || 0) - (a.upvote?.length || 0));
+    }
+
+    setfilteredQuestion(result);
+  }, [question, sortBy, filterBy, searchQuery]);
   if (loading) {
     return (
       <Mainlayout>
@@ -90,7 +132,7 @@ export default function Home() {
       </Mainlayout>
     );
   }
-  if (!question || question.length === 0) {
+  if (!filteredQuestion || filteredQuestion.length === 0) {
     return (
       <Mainlayout>
         <div className="text-center text-gray-500 mt-4">No question found.</div>
@@ -111,34 +153,70 @@ export default function Home() {
           </button>
         </div>
         <div className="w-full">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4 text-sm gap-2 sm:gap-4">
-            <span className="text-gray-600">{question.length} questions</span>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4 gap-2 sm:gap-4">
+            <span className="text-gray-600">{filteredQuestion.length} questions</span>
             <div className="flex flex-wrap gap-1 sm:gap-2">
-              <button className="px-2 sm:px-3 py-1 bg-gray-200 text-gray-700 rounded text-xs sm:text-sm">
+              <button
+                onClick={() => setSortBy("newest")}
+                className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm ${
+                  sortBy === "newest"
+                    ? "bg-gray-200 text-gray-700"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
                 Newest
               </button>
-              <button className="px-2 sm:px-3 py-1 text-gray-600 hover:bg-gray-100 rounded text-xs sm:text-sm">
+              <button
+                onClick={() => setSortBy("active")}
+                className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm ${
+                  sortBy === "active"
+                    ? "bg-gray-200 text-gray-700"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
                 Active
               </button>
-              <button className="px-2 sm:px-3 py-1 text-gray-600 hover:bg-gray-100 rounded flex items-center text-xs sm:text-sm">
+              <button
+                onClick={() => setFilterBy(filterBy === "bountied" ? "all" : "bountied")}
+                className={`px-2 sm:px-3 py-1 flex items-center text-xs sm:text-sm rounded ${
+                  filterBy === "bountied"
+                    ? "bg-gray-200 text-gray-700"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
                 Bountied
                 <Badge variant="secondary" className="ml-1 text-xs">
-                  25
+                  {question ? question.filter((q) => q.upvote && q.upvote.length > 0).length : 0}
                 </Badge>
               </button>
-              <button className="px-2 sm:px-3 py-1 text-gray-600 hover:bg-gray-100 rounded text-xs sm:text-sm">
+              <button
+                onClick={() => setFilterBy(filterBy === "unanswered" ? "all" : "unanswered")}
+                className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm ${
+                  filterBy === "unanswered"
+                    ? "bg-gray-200 text-gray-700"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
                 Unanswered
               </button>
               <button className="px-2 sm:px-3 py-1 text-gray-600 hover:bg-gray-100 rounded text-xs sm:text-sm">
                 More ▼
               </button>
-              <button className="px-2 sm:px-3 py-1 border border-gray-300 text-gray-600 hover:bg-gray-50 rounded ml-auto text-xs sm:text-sm">
-                🔍 Filter
-              </button>
             </div>
           </div>
+          
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search questions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+
           <div className="space-y-4">
-            {question.map((question) => (
+            {filteredQuestion.map((question) => (
               <div key={question._id} className="border-b border-gray-200 pb-4">
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex sm:flex-col items-center sm:items-center text-sm text-gray-600 sm:w-16 lg:w-20 gap-4 sm:gap-2">

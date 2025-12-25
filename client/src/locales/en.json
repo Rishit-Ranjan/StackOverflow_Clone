@@ -53,6 +53,7 @@
         "languageUpdated": "Language updated successfully",
         "addPhoneFirst": "Please add and verify your phone number first",
         "phoneNumber": "Phone Number",
-        "verifyPhone": "Verify Phone Number"
+        "verifyPhone": "Verify Phone Number",
+        "resendOTP": "Resend OTP"
     }
 }

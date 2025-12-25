@@ -86,13 +86,17 @@ export const Login = async (req, res) => {
         { expiresIn: "1h" }
       );
       // Record History
-      await LoginHistory.create({
-        userId: exisitinguser._id,
-        browser: browser,
-        os: os,
-        deviceType: isMobile ? "Mobile" : "Desktop",
-        ip: clientIp,
-      });
+      try {
+        await LoginHistory.create({
+          userId: exisitinguser._id,
+          browser: browser,
+          os: os,
+          deviceType: isMobile ? "Mobile" : "Desktop",
+          ip: clientIp,
+        });
+      } catch (error) {
+        console.log("Login History Error:", error);
+      }
       return res.status(200).json({ data: exisitinguser, token });
     }
 
@@ -131,13 +135,17 @@ export const Login = async (req, res) => {
       { expiresIn: "1h" }
     );
     // Record History
-    await LoginHistory.create({
-      userId: exisitinguser._id,
-      browser: browser,
-      os: os,
-      deviceType: isMobile ? "Mobile" : "Desktop",
-      ip: clientIp,
-    });
+    try {
+      await LoginHistory.create({
+        userId: exisitinguser._id,
+        browser: browser,
+        os: os,
+        deviceType: isMobile ? "Mobile" : "Desktop",
+        ip: clientIp,
+      });
+    } catch (error) {
+      console.log("Login History Error:", error);
+    }
     res.status(200).json({ data: exisitinguser, token });
   } catch (error) {
     console.log(error);
@@ -173,13 +181,17 @@ export const verifyOTP = async (req, res) => {
     );
 
     // Record History
-    await LoginHistory.create({
-      userId: exisitinguser._id,
-      browser: agent.toAgent(),
-      os: agent.os,
-      deviceType: /mobile/i.test(req.headers["user-agent"]) ? "Mobile" : "Desktop",
-      ip: clientIp,
-    });
+    try {
+      await LoginHistory.create({
+        userId: exisitinguser._id,
+        browser: agent.toAgent(),
+        os: agent.os,
+        deviceType: /mobile/i.test(req.headers["user-agent"]) ? "Mobile" : "Desktop",
+        ip: clientIp,
+      });
+    } catch (error) {
+      console.log("Login History Error:", error);
+    }
 
     res.status(200).json({ data: exisitinguser, token });
   } catch (error) {

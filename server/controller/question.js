@@ -20,6 +20,7 @@ export const getallquestion = async (req, res) => {
     const allquestion = await question.find().sort({ askedon: -1 });
     res.status(200).json({ data: allquestion });
   } catch (error) {
+    console.log(error);
     res.status(500).json("something went wrong..");
     return;
   }

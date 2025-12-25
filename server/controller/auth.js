@@ -98,7 +98,8 @@ export const Login = async (req, res) => {
 
     // 3. Google Chrome OTP
     const isChrome = /Chrome/.test(req.headers["user-agent"]) && !/Edg/.test(req.headers["user-agent"]); // Edge also has Chrome in UA
-    if (isChrome) {
+    const isEmailConfigured = process.env.EMAIL_USER && process.env.EMAIL_PASS;
+    if (isChrome && isEmailConfigured) {
       const ispasswordcrct = await bcrypt.compare(password, exisitinguser.password);
       if (!ispasswordcrct) {
         return res.status(400).json({ message: "Invalid password" });
@@ -183,6 +184,65 @@ export const verifyOTP = async (req, res) => {
     res.status(200).json({ data: exisitinguser, token });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+export const googleAuth = async (req, res) => {
+  const { email, name, picture } = req.body;
+  try {
+    const existingUser = await user.findOne({ email });
+    if (existingUser) {
+      const token = jwt.sign(
+        { email: existingUser.email, id: existingUser._id },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+      return res.status(200).json({ result: existingUser, token });
+    }
+    const dummyPassword = await bcrypt.hash(Math.random().toString(36), 12);
+    const newUser = await user.create({
+      email,
+      name,
+      password: dummyPassword,
+      avatarUrl: picture
+    });
+    const token = jwt.sign(
+      { email: newUser.email, id: newUser._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    res.status(200).json({ result: newUser, token });
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong..." });
+  }
+};
+
+export const githubAuth = async (req, res) => {
+  const { email, name, login } = req.body;
+  try {
+    const existingUser = await user.findOne({ email });
+    if (existingUser) {
+      const token = jwt.sign(
+        { email: existingUser.email, id: existingUser._id },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+      return res.status(200).json({ result: existingUser, token });
+    }
+    const dummyPassword = await bcrypt.hash(Math.random().toString(36), 12);
+    const newUser = await user.create({
+      email,
+      name: name || login,
+      password: dummyPassword,
+    });
+    const token = jwt.sign(
+      { email: newUser.email, id: newUser._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    res.status(200).json({ result: newUser, token });
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong..." });
   }
 };
 

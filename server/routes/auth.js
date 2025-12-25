@@ -15,6 +15,8 @@ import {
   getNotifications,
   markNotificationRead,
   setNotificationsEnabled,
+  googleAuth,
+  githubAuth,
 } from "../controller/auth.js";
 
 const router = express.Router();
@@ -33,6 +35,8 @@ const upload = multer({ storage });
 
 router.post("/signup", Signup);
 router.post("/login", Login);
+router.post("/google", googleAuth);
+router.post("/github", githubAuth);
 router.post("/verify-otp", verifyOTP);
 router.get("/history", auth, getLoginHistory);
 router.post("/request-language-switch", auth, requestLanguageSwitch);

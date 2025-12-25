@@ -9,4 +9,13 @@ export default defineConfig({
             "@": path.resolve(__dirname, "./src"),
         },
     },
+
+    server: {
+    proxy: {
+      '/user': 'http://localhost:5000',
+      '/question': 'http://localhost:5000',
+      '/answer': 'http://localhost:5000',
+      '/uploads': 'http://localhost:5000',
+    },
+  },
 });

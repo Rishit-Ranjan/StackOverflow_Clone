@@ -6,7 +6,6 @@ import userAgent from "user-agent";
 import requestIp from "request-ip";
 import nodemailer from "nodemailer";
 import LoginHistory from "../models/LoginHistory.js";
-import twilio from "twilio";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -26,14 +25,6 @@ const sendOTP = async (email, otp) => {
   await transporter.sendMail(mailOptions);
 };
 
-const sendSMS = async (phoneNumber, otp) => {
-  const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-  await client.messages.create({
-    body: `Your language switch OTP is: ${otp}`,
-    from: process.env.TWILIO_PHONE_NUMBER,
-    to: phoneNumber,
-  });
-};
 export const Signup = async (req, res) => {
   const { name, email, password } = req.body;
   try {
@@ -303,43 +294,21 @@ export const requestLanguageSwitch = async (req, res) => {
     existingUser.languageSwitchOtpExpires = Date.now() + 10 * 60 * 1000; // 10 mins
     await existingUser.save();
 
-    // French => Email OTP, Others => SMS OTP
-    if (targetLanguage === 'fr') {
-      try {
-        const mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: existingUser.email,
-          subject: "Language Switch Verification",
-          text: `Your OTP to switch to French is: ${otp}`,
-        };
-        await transporter.sendMail(mailOptions);
-        return res.status(200).json({
-          message: "OTP sent to your email",
-          otpMethod: "email"
-        });
-      } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Failed to send email OTP" });
-      }
-    } else {
-      // SMS OTP for other languages
-      if (!existingUser.phoneNumber || !existingUser.phoneVerified) {
-        return res.status(400).json({
-          message: "Please add and verify your phone number first",
-          needsPhone: true
-        });
-      }
-
-      try {
-        await sendSMS(existingUser.phoneNumber, otp);
-        return res.status(200).json({
-          message: "OTP sent to your phone",
-          otpMethod: "sms"
-        });
-      } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Failed to send SMS OTP" });
-      }
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: existingUser.email,
+        subject: "Language Switch Verification",
+        text: `Your OTP to switch language is: ${otp}`,
+      };
+      await transporter.sendMail(mailOptions);
+      return res.status(200).json({
+        message: "OTP sent to your email",
+        otpMethod: "email"
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Failed to send email OTP" });
     }
   } catch (error) {
     console.log(error);
@@ -395,11 +364,17 @@ export const updatePhoneNumber = async (req, res) => {
     await existingUser.save();
 
     try {
-      await sendSMS(phoneNumber, otp);
-      res.status(200).json({ message: "Verification OTP sent to your phone" });
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: existingUser.email,
+        subject: "Phone Verification OTP",
+        text: `Your verification OTP for phone ${phoneNumber} is: ${otp}`,
+      };
+      await transporter.sendMail(mailOptions);
+      res.status(200).json({ message: "Verification OTP sent to your email" });
     } catch (error) {
       console.log(error);
-      res.status(500).json({ message: "Failed to send SMS" });
+      res.status(500).json({ message: "Failed to send OTP" });
     }
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });

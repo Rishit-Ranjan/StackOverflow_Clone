@@ -6,11 +6,13 @@ import userroutes from "./routes/auth.js"
 import questionroute from "./routes/question.js"
 import answerroutes from "./routes/answer.js"
 import fs from "fs";
+
 const app = express();
 dotenv.config();
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
 app.use(cors());
+
 // ensure uploads dir exists and serve it
 const uploadsDir = "uploads";
 if (!fs.existsSync(uploadsDir)) {
@@ -23,7 +25,7 @@ app.get("/", (req, res) => {
 app.use('/user',userroutes)
 app.use('/question',questionroute)
 app.use('/answer',answerroutes)
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 const databaseurl = process.env.MONGODB_URL;
 
 mongoose

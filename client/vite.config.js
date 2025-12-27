@@ -12,10 +12,10 @@ export default defineConfig({
 
     server: {
     proxy: {
-      '/user': 'http://localhost:5000',
-      '/question': 'http://localhost:5000',
-      '/answer': 'http://localhost:5000',
-      '/uploads': 'http://localhost:5000',
+      '/user': 'http://127.0.0.1:5000',
+      '/question': 'http://127.0.0.1:5000',
+      '/answer': 'http://127.0.0.1:5000',
+      '/uploads': 'http://127.0.0.1:5000',
     },
   },
 });

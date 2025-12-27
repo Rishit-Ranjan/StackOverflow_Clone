@@ -67,6 +67,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const SocialLogin = async (type, payload) => {
+    setloading(true);
+    seterror(null);
+    try {
+      const endpoint = type === "google" ? "/user/google" : "/user/github";
+      const res = await axiosInstance.post(endpoint, payload);
+      const { result, token } = res.data;
+      localStorage.setItem("user", JSON.stringify({ ...result, token }));
+      setUser(result);
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} Login Successful`);
+      return res.data;
+    } catch (error) {
+      setloading(false);
+      const msg = error.response?.data.message || `${type} login failed`;
+      seterror(msg);
+      toast.error(msg);
+      throw error;
+    } finally {
+      setloading(false);
+    }
+  };
+
   const VerifyOTP = async ({ userId, otp }) => {
     setloading(true);
     seterror(null);
@@ -170,7 +192,7 @@ export const AuthProvider = ({ children }) => {
   };
   return (
     <AuthContext.Provider
-      value={{ user, Signup, Login, VerifyOTP, Logout, updateUser, loading, error, notifications, fetchNotifications, markNotificationRead }}
+      value={{ user, Signup, Login, SocialLogin, VerifyOTP, Logout, updateUser, loading, error, notifications, fetchNotifications, markNotificationRead }}
     >
       {children}
     </AuthContext.Provider>

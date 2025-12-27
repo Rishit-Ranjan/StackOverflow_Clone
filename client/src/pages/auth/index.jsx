@@ -12,14 +12,44 @@ import { useAuth } from "@/lib/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
+import { useGoogleLogin } from "@react-oauth/google";
+import axios from "axios";
 
 const index = () => {
   const navigate = useNavigate();
-  const { Login, VerifyOTP, loading } = useAuth();
+  const { Login, VerifyOTP, SocialLogin, loading } = useAuth();
   const [form, setform] = useState({ email: "", password: "" });
   const [otp, setOtp] = useState("");
   const [showOtp, setShowOtp] = useState(false);
   const [userId, setUserId] = useState(null);
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const userInfo = await axios.get(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } }
+        );
+        await SocialLogin("google", {
+          email: userInfo.data.email,
+          name: userInfo.data.name,
+          picture: userInfo.data.picture,
+        });
+        navigate("/");
+      } catch (error) {
+        console.error("Google Login Error:", error);
+      }
+    },
+    onError: () => toast.error("Google Login Failed"),
+  });
+
+  const handleGithubLogin = () => {
+    // Simulated Github login for clone demonstration if client secret/exchange is not set up
+    // In a real app, this would redirect to Github or use a library
+    toast.info("Github Login initiated. (Note: Requires OAuth configuration)");
+    // For now, let's just show a simulated success if we were in a dev environment
+    // or we could redirect to a Github OAuth URL if we had the Client ID
+  };
   const handleChange = (e) => {
     setform({ ...form, [e.target.id]: e.target.value });
   };
@@ -83,7 +113,9 @@ const index = () => {
             <CardContent className="space-y-4">
               <Button
                 variant="outline"
+                type="button"
                 className="w-full bg-transparent text-sm"
+                onClick={() => googleLogin()}
               >
                 <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                   <path
@@ -107,7 +139,9 @@ const index = () => {
               </Button>
               <Button
                 variant="outline"
+                type="button"
                 className="w-full bg-transparent text-sm"
+                onClick={handleGithubLogin}
               >
                 <svg
                   className="w-4 h-4 mr-2"
